@@ -17,6 +17,7 @@ import (
 
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	"aspect.build/cli/pkg/aspecterrors"
 	"aspect.build/cli/pkg/bazel"
@@ -62,9 +63,7 @@ func Select(presetNames []string) SelectRunner {
 	}
 }
 
-func GetPrecannedQueries(verb string) []*PresetQuery {
-	// TODO: Queries should be loadable from the plugin config
-	// https://github.com/aspect-build/aspect-cli/issues/98
+func GetPrecannedQueries(verb string, viper viper.Viper) []*PresetQuery {
 	presets := []*PresetQuery{
 		{
 			Name:        "why",
@@ -90,6 +89,28 @@ func GetPrecannedQueries(verb string) []*PresetQuery {
 			Query:       "deps(?target)",
 			Verb:        "cquery",
 		},
+	}
+
+	presetsKey := "query.presets"
+
+	userDefinedQueries := viper.GetStringMap(presetsKey)
+
+	for name := range userDefinedQueries {
+		userDefinedQuery := viper.GetStringMapString(fmt.Sprintf("%s.%s", presetsKey, name))
+
+		presetQuery := &PresetQuery{
+			Name:        name,
+			Description: userDefinedQuery["description"],
+			Query:       userDefinedQuery["query"],
+			Verb:        userDefinedQuery["verb"],
+		}
+
+		presetExists, existingPresetIndex := isPresetQueryInSlice(presetQuery, presets)
+		if presetExists {
+			presets = removePresetQuery(presets, existingPresetIndex)
+		}
+
+		presets = append(presets, presetQuery)
 	}
 
 	switch verb {
@@ -148,31 +169,6 @@ func RunQuery(bzl bazel.Bazel, verb string, query string) error {
 	return nil
 }
 
-func ReplacePlaceholders(query string, args []string, p func(label string) PromptRunner) (string, error) {
-	placeholders := regexp.MustCompile(`(\?[a-zA-Z]*)`).FindAllString(query, -1)
-
-	if len(placeholders) == len(args)-1 {
-		for i, placeholder := range placeholders {
-			// todo.... Print out targetA was set to //foo and targetB was set to //bar
-			query = strings.ReplaceAll(query, placeholder, args[i+1])
-		}
-	} else if len(placeholders) > 0 {
-		for _, placeholder := range placeholders {
-			label := fmt.Sprintf("Value for '%s'", strings.TrimPrefix(placeholder, "?"))
-			prompt := p(label)
-			val, err := prompt.Run()
-
-			if err != nil {
-				return "", err
-			}
-
-			query = strings.ReplaceAll(query, placeholder, val)
-		}
-	}
-
-	return query, nil
-}
-
 func SelectQuery(
 	verb string,
 	processedPresets map[string]*PresetQuery,
@@ -217,4 +213,44 @@ func SelectQuery(
 
 func GetPrettyError(cmd *cobra.Command, err error) error {
 	return fmt.Errorf("failed to run 'aspect %s': %w", cmd.Use, err)
+}
+
+func ReplacePlaceholders(query string, args []string, p func(label string) PromptRunner) (string, error) {
+	placeholders := regexp.MustCompile(`(\?[a-zA-Z]*)`).FindAllString(query, -1)
+
+	if len(placeholders) == len(args)-1 {
+		for i, placeholder := range placeholders {
+			// todo.... Print out targetA was set to //foo and targetB was set to //bar
+			query = strings.ReplaceAll(query, placeholder, args[i+1])
+		}
+	} else if len(placeholders) > 0 {
+		for _, placeholder := range placeholders {
+			label := fmt.Sprintf("Value for '%s'", strings.TrimPrefix(placeholder, "?"))
+			prompt := p(label)
+			val, err := prompt.Run()
+
+			if err != nil {
+				return "", err
+			}
+
+			query = strings.ReplaceAll(query, placeholder, val)
+		}
+	}
+
+	return query, nil
+}
+
+// if preset query is present return true and the index of where it is found
+// if preset query is not preset return false and -1 for index
+func isPresetQueryInSlice(presetQuery *PresetQuery, presetQueries []*PresetQuery) (bool, int) {
+	for i, existingPresetQuery := range presetQueries {
+		if existingPresetQuery.Name == presetQuery.Name && existingPresetQuery.Verb == presetQuery.Verb {
+			return true, i
+		}
+	}
+	return false, -1
+}
+
+func removePresetQuery(presetQueries []*PresetQuery, i int) []*PresetQuery {
+	return append(presetQueries[:i], presetQueries[i+1:]...)
 }
