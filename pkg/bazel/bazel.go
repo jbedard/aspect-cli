@@ -46,13 +46,21 @@ func (*bazel) createRepositories() *core.Repositories {
 // Spawn is similar to the main() function of bazelisk
 // see https://github.com/bazelbuild/bazelisk/blob/7c3d9d5/bazelisk.go
 func (b *bazel) Spawn(command []string) (int, error) {
+	fmt.Println(command)
+	// save the commands to a file
+	//   - do we want to save the "--bes_backend=grpc://127.0.0.1:60721" portion? Thinking yes
+	// prompt user on first run to find out of they want to be told about the location of the log file every run
+	//   - if YES then make sure to print the location. At the end of the run? Before the run?
+	//   - if NO then do nothing
 	return b.RunCommand(command, nil)
 }
 
 func (b *bazel) RunCommand(command []string, out io.Writer) (int, error) {
+	// should maybe fo the entire thing here? In case someone calls this directly
 	repos := b.createRepositories()
 	bazelisk := NewBazelisk(b.workspaceRoot)
 	exitCode, err := bazelisk.Run(command, repos, out)
+	// if at the end of the command then print here
 	return exitCode, err
 }
 
