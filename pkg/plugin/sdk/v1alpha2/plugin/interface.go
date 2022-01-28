@@ -18,6 +18,10 @@ type Plugin interface {
 		isInteractiveMode bool,
 		promptRunner ioutils.PromptRunner,
 	) error
+	CustomCommands(
+		isInteractiveMode bool,
+		promptRunner ioutils.PromptRunner,
+	) []*Command
 	PostTestHook(
 		isInteractiveMode bool,
 		promptRunner ioutils.PromptRunner,
@@ -26,4 +30,10 @@ type Plugin interface {
 		isInteractiveMode bool,
 		promptRunner ioutils.PromptRunner,
 	) error
+}
+
+type Command struct {
+	Use string
+	Run func(args []string) error
+	// Run func(cmd *Command, args []string) error
 }

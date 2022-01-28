@@ -10,6 +10,7 @@ option go_package = "aspect.build/cli/pkg/plugin/sdk/v1alpha2/proto";
 service Plugin {
   rpc BEPEventCallback(BEPEventCallbackReq) returns (BEPEventCallbackRes);
   rpc PostBuildHook(PostBuildHookReq) returns (PostBuildHookRes);
+  rpc CustomCommands(CustomCommandsReq) returns (CustomCommandsRes);
   rpc PostTestHook(PostTestHookReq) returns (PostTestHookRes);
   rpc PostRunHook(PostRunHookReq) returns (PostRunHookRes);
 }
@@ -26,6 +27,15 @@ message PostBuildHookReq {
 }
 
 message PostBuildHookRes {}
+
+message CustomCommandsReq {
+  uint32 broker_id = 1;
+  bool is_interactive_mode = 2;
+}
+
+message CustomCommandsRes {
+  repeated bytes command = 1;
+}
 
 message PostTestHookReq {
   uint32 broker_id = 1;

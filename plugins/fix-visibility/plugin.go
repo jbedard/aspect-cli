@@ -27,6 +27,7 @@ import (
 	buildeventstream "aspect.build/cli/bazel/buildeventstream/proto"
 	"aspect.build/cli/pkg/ioutils"
 	"aspect.build/cli/pkg/plugin/sdk/v1alpha2/config"
+	aspectplugin "aspect.build/cli/pkg/plugin/sdk/v1alpha2/plugin"
 )
 
 func main() {
@@ -170,6 +171,25 @@ func (plugin *FixVisibilityPlugin) PostRunHook(
 	promptRunner ioutils.PromptRunner,
 ) error {
 	return plugin.PostBuildHook(isInteractiveMode, promptRunner)
+}
+
+// PostRunHook satisfies the Plugin interface. In this case, it just calls the
+// PostBuildHook.
+func (plugin *FixVisibilityPlugin) CustomCommands(
+	isInteractiveMode bool,
+	promptRunner ioutils.PromptRunner,
+) []*aspectplugin.Command {
+	test := make([]*aspectplugin.Command, 0)
+
+	test = append(test, &aspectplugin.Command{
+		Use: "jessetest",
+		Run: func(args []string) error {
+			fmt.Println("hey it actually worked")
+			return nil
+		},
+	})
+
+	return test
 }
 
 func (plugin *FixVisibilityPlugin) hasPrivateVisibility(toFix string) (bool, error) {

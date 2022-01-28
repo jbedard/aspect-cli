@@ -74,6 +74,26 @@ func (m *GRPCServer) PostBuildHook(
 		m.Impl.PostBuildHook(req.IsInteractiveMode, prompter)
 }
 
+// PostBuildHook translates the gRPC call to the Plugin PostBuildHook
+// implementation. It starts a prompt runner that is passed to the Plugin
+// instance to be able to perform prompt actions to the CLI user.
+func (m *GRPCServer) CustomCommands(
+	ctx context.Context,
+	req *proto.CustomCommandsReq,
+) (*proto.CustomCommandsRes, []*Command) {
+	conn, err := m.broker.Dial(req.BrokerId)
+	if err != nil {
+		// should maybe return nil, nil, err
+		return nil, nil
+	}
+	defer conn.Close()
+
+	client := proto.NewPrompterClient(conn)
+	prompter := &PrompterGRPCClient{client: client}
+	return &proto.CustomCommandsRes{},
+		m.Impl.CustomCommands(req.IsInteractiveMode, prompter)
+}
+
 // PostTestHook translates the gRPC call to the Plugin PostTestHook
 // implementation. It starts a prompt runner that is passed to the Plugin
 // instance to be able to perform prompt actions to the CLI user.
@@ -145,6 +165,28 @@ func (m *GRPCClient) PostBuildHook(isInteractiveMode bool, promptRunner ioutils.
 	_, err := m.client.PostBuildHook(context.Background(), req)
 	s.Stop()
 	return err
+}
+
+// CustomCommands is called from the Core to execute the Plugin CustomCommands. It
+// starts the prompt runner server with the provided PromptRunner.
+func (m *GRPCClient) CustomCommands(isInteractiveMode bool, promptRunner ioutils.PromptRunner) []*Command {
+	prompterServer := &PrompterGRPCServer{promptRunner: promptRunner}
+	var s *grpc.Server
+	serverFunc := func(opts []grpc.ServerOption) *grpc.Server {
+		s = grpc.NewServer(opts...)
+		proto.RegisterPrompterServer(s, prompterServer)
+		return s
+	}
+	brokerID := m.broker.NextId()
+	go m.broker.AcceptAndServe(brokerID, serverFunc)
+	req := &proto.CustomCommandsReq{
+		BrokerId:          brokerID,
+		IsInteractiveMode: isInteractiveMode,
+	}
+	_, _ = m.client.CustomCommands(context.Background(), req)
+	s.Stop()
+	// convert the result from CustomCommands
+	return nil
 }
 
 // PostTestHook is called from the Core to execute the Plugin PostTestHook. It
