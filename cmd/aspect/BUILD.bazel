@@ -12,6 +12,7 @@ go_library(
         "//cmd/aspect/root",
         "//pkg/aspecterrors",
         "//pkg/ioutils",
+        "//pkg/logger",
         "//pkg/plugin/system",
     ],
 )

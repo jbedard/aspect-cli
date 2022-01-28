@@ -15,10 +15,14 @@ import (
 	"aspect.build/cli/cmd/aspect/root"
 	"aspect.build/cli/pkg/aspecterrors"
 	"aspect.build/cli/pkg/ioutils"
+	"aspect.build/cli/pkg/logger"
 	"aspect.build/cli/pkg/plugin/system"
 )
 
 func main() {
+	fmt.Println("In main")
+	logger.Test1()
+	logger.Log("Hello world from main.go")
 	// Detect whether we are being run as a tools/bazel wrapper (look for BAZEL_REAL in the environment)
 	// If so,
 	//     Is this a bazel-native command? just call through to bazel without touching the arguments for now
