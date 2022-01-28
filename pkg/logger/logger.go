@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"runtime"
 
 	"github.com/natefinch/lumberjack"
 )
@@ -34,6 +35,10 @@ func init() {
 		sample: "testssssss",
 	}
 
+	// How do we get the invocation ID into here......
+	// Make sure to use a timestamp so that the folders are ordered correctly
+	// time.Now().UTC().Nano()
+	// time.Now().UTC().UnixNano()
 	e, err := os.OpenFile("/Users/jesse/Development/aspect-cli/foo.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
 
 	if err != nil {
@@ -59,4 +64,14 @@ func Test1() {
 
 func Log(message string) {
 	Logger.l.Println(message)
+
+	// if log level = debug?????
+	// Will tell the user where the logs were called from
+	if false {
+		pc, _, _, ok := runtime.Caller(1)
+		details := runtime.FuncForPC(pc)
+		if ok && details != nil {
+			fmt.Printf("called from %s\n", details.Name())
+		}
+	}
 }

@@ -109,8 +109,6 @@ func NewDefault(bzl bazel.Bazel, isInteractive bool) *Clean {
 
 // Run runs the aspect build command.
 func (c *Clean) Run(_ *cobra.Command, _ []string) error {
-	fmt.Println("in the clean file")
-	logger.Test1()
 	logger.Log("Hello world from the clean command")
 	skip := c.Prefs.GetBool(skipPromptKey)
 	if c.isInteractiveMode && !skip {

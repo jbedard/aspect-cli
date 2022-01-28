@@ -56,7 +56,7 @@ func (b *bazel) Spawn(command []string) (int, error) {
 }
 
 func (b *bazel) RunCommand(command []string, out io.Writer) (int, error) {
-	// should maybe fo the entire thing here? In case someone calls this directly
+	// should maybe do the entire thing here? In case someone calls this directly
 	repos := b.createRepositories()
 	bazelisk := NewBazelisk(b.workspaceRoot)
 	exitCode, err := bazelisk.Run(command, repos, out)
