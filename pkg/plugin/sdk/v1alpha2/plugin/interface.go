@@ -21,7 +21,7 @@ type Plugin interface {
 	CustomCommands(
 		isInteractiveMode bool,
 		promptRunner ioutils.PromptRunner,
-	) []*Command
+	) ([]*Command, error)
 	PostTestHook(
 		isInteractiveMode bool,
 		promptRunner ioutils.PromptRunner,

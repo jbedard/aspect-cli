@@ -178,7 +178,7 @@ func (plugin *FixVisibilityPlugin) PostRunHook(
 func (plugin *FixVisibilityPlugin) CustomCommands(
 	isInteractiveMode bool,
 	promptRunner ioutils.PromptRunner,
-) []*aspectplugin.Command {
+) ([]*aspectplugin.Command, error) {
 	test := make([]*aspectplugin.Command, 0)
 
 	test = append(test, &aspectplugin.Command{
@@ -189,7 +189,7 @@ func (plugin *FixVisibilityPlugin) CustomCommands(
 		},
 	})
 
-	return test
+	return test, nil
 }
 
 func (plugin *FixVisibilityPlugin) hasPrivateVisibility(toFix string) (bool, error) {

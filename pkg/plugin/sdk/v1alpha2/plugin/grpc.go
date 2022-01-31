@@ -80,7 +80,7 @@ func (m *GRPCServer) PostBuildHook(
 func (m *GRPCServer) CustomCommands(
 	ctx context.Context,
 	req *proto.CustomCommandsReq,
-) (*proto.CustomCommandsRes, []*Command) {
+) (*proto.CustomCommandsRes, error) {
 	conn, err := m.broker.Dial(req.BrokerId)
 	if err != nil {
 		// should maybe return nil, nil, err
@@ -90,8 +90,11 @@ func (m *GRPCServer) CustomCommands(
 
 	client := proto.NewPrompterClient(conn)
 	prompter := &PrompterGRPCClient{client: client}
-	return &proto.CustomCommandsRes{},
-		m.Impl.CustomCommands(req.IsInteractiveMode, prompter)
+
+	// need to add result to CustomCommandsRes
+	result, err := m.Impl.CustomCommands(req.IsInteractiveMode, prompter)
+	fmt.Println(result)
+	return &proto.CustomCommandsRes{}, err
 }
 
 // PostTestHook translates the gRPC call to the Plugin PostTestHook
