@@ -32,6 +32,7 @@ import (
 type PluginSystem interface {
 	Configure(streams ioutils.Streams) error
 	TearDown()
+	AddCustomCommands(cmd *cobra.Command) *cobra.Command
 	BESBackendInterceptor() interceptors.Interceptor
 	BuildHooksInterceptor(streams ioutils.Streams) interceptors.Interceptor
 	TestHooksInterceptor(streams ioutils.Streams) interceptors.Interceptor
@@ -109,6 +110,27 @@ func (ps *pluginSystem) Configure(streams ioutils.Streams) error {
 	}
 
 	return nil
+}
+
+func (ps *pluginSystem) AddCustomCommands(cmd *cobra.Command) *cobra.Command {
+	for node := ps.plugins.head; node != nil; node = node.next {
+		fmt.Println("Calling custom commands from AddCustomCommands")
+		result, err := node.plugin.CustomCommands(false, nil)
+		if err != nil {
+			// handle errors properly
+			fmt.Println(err)
+		}
+
+		fmt.Println("still in AddCustomCommands")
+		fmt.Println("still in AddCustomCommands")
+		for _, command := range result {
+			fmt.Println(command)
+			fmt.Println("Printing command.Use: " + command.Use)
+		}
+
+		fmt.Println(result)
+	}
+	return cmd
 }
 
 // TearDown tears down the plugin system, making all the necessary actions to

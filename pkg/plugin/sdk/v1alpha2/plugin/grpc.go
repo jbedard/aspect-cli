@@ -14,7 +14,6 @@ import (
 	"context"
 	"encoding/gob"
 	"fmt"
-	"log"
 
 	goplugin "github.com/hashicorp/go-plugin"
 	"github.com/manifoldco/promptui"
@@ -84,6 +83,7 @@ func (m *GRPCServer) CustomCommands(
 	ctx context.Context,
 	req *proto.CustomCommandsReq,
 ) (*proto.CustomCommandsRes, error) {
+	fmt.Println("In the GRPCServer CustomCommands")
 	conn, err := m.broker.Dial(req.BrokerId)
 	if err != nil {
 		// should maybe return nil, nil, err
@@ -95,32 +95,91 @@ func (m *GRPCServer) CustomCommands(
 	prompter := &PrompterGRPCClient{client: client}
 
 	// need to add result to CustomCommandsRes
-	result, err := m.Impl.CustomCommands(req.IsInteractiveMode, prompter)
-	fmt.Println(result)
+	customCommands, err := m.Impl.CustomCommands(req.IsInteractiveMode, prompter)
+	fmt.Println(customCommands)
 
-	var network bytes.Buffer
-	enc := gob.NewEncoder(&network) // Will write to network.
-	dec := gob.NewDecoder(&network) // Will read from network.
+	// var network bytes.Buffer
+	// enc := gob.NewEncoder(&network) // Will write to network.
+	// // dec := gob.NewDecoder(&network) // Will read from network.
 
-	err2 := enc.Encode(result)
-	if err2 != nil {
-		log.Fatal("encode error:", err)
+	// err2 := enc.Encode(customCommands[0])
+	// if err2 != nil {
+	// 	fmt.Println("encode error:", err2)
+	// }
+
+	// // HERE ARE YOUR BYTES!!!!
+	// fmt.Println("1")
+	// fmt.Println(network.Bytes())
+	// fmt.Println("1")
+
+	// pb := &proto.CustomCommandsRes{
+	// 	Command: []*proto.CustomCommandsRes_command{
+	// 		{
+	// 			SubVariable1: "string",
+	// 			SubVariable2: 1,
+	// 		},
+	// 	},
+	// }
+	// fmt.Println("--------------------")
+	// customCommands[0].Run(nil)
+	// fmt.Println("--------------------")
+
+	test := make([][]byte, 0)
+	gob.Register(Command{})
+	for _, command := range customCommands {
+		var network2 bytes.Buffer
+		encoder := gob.NewEncoder(&network2) // Will write to network.
+		err3 := encoder.Encode(command)
+		if err3 != nil {
+			fmt.Println("encode error:", err3)
+		}
+		fmt.Println("2")
+		fmt.Println(network2.Bytes())
+		fmt.Println("2")
+		test = append(test, network2.Bytes())
 	}
 
-	// HERE ARE YOUR BYTES!!!!
-	fmt.Println(network.Bytes())
-
-	// Decode (receive) the value.
-	var q Command
-	err2 = dec.Decode(&q)
-	if err2 != nil {
-		log.Fatal("decode error:", err)
+	pb := &proto.CustomCommandsRes{
+		Command: test,
 	}
-	fmt.Printf("%q", q.Use)
 
-	q.Run([]string{"", ""})
+	fmt.Println(pb)
 
-	return &proto.CustomCommandsRes{}, err
+	// // Decode (receive) the value.
+	// var q Command
+	// err2 = dec.Decode(&q)
+	// if err2 != nil {
+	// 	fmt.Println("herererererererererere")
+	// 	fmt.Println("herererererererererere")
+	// 	fmt.Println("herererererererererere")
+	// 	fmt.Println("decode error:", err2)
+	// }
+	// fmt.Printf("My Use name: " + string(q.Use))
+
+	// fmt.Println("2")
+	// fmt.Println("2")
+	// fmt.Println("2")
+	// fmt.Println("2")
+	// fmt.Println("2")
+	// fmt.Println("2")
+	// fmt.Println("2")
+	// q.Run([]string{})
+
+	// fmt.Println("3")
+	// fmt.Println("3")
+	// fmt.Println("3")
+	// fmt.Println("3")
+	// fmt.Println("3")
+	// fmt.Println("3")
+	// fmt.Println("3")
+	// fmt.Println("3")
+	// fmt.Println("3")
+	// fmt.Println("3")
+	// fmt.Println("3")
+	// fmt.Println("3")
+	// fmt.Println("3")
+	// fmt.Println("3")
+	return pb, err
 }
 
 // PostTestHook translates the gRPC call to the Plugin PostTestHook
@@ -199,6 +258,7 @@ func (m *GRPCClient) PostBuildHook(isInteractiveMode bool, promptRunner ioutils.
 // CustomCommands is called from the Core to execute the Plugin CustomCommands. It
 // starts the prompt runner server with the provided PromptRunner.
 func (m *GRPCClient) CustomCommands(isInteractiveMode bool, promptRunner ioutils.PromptRunner) ([]*Command, error) {
+	fmt.Println("In the GRPCClient CustomCommands")
 	prompterServer := &PrompterGRPCServer{promptRunner: promptRunner}
 	var s *grpc.Server
 	serverFunc := func(opts []grpc.ServerOption) *grpc.Server {
@@ -212,10 +272,30 @@ func (m *GRPCClient) CustomCommands(isInteractiveMode bool, promptRunner ioutils
 		BrokerId:          brokerID,
 		IsInteractiveMode: isInteractiveMode,
 	}
-	_, err := m.client.CustomCommands(context.Background(), req)
+	customCommandsPB, err := m.client.CustomCommands(context.Background(), req)
 	s.Stop()
 	// convert the result from CustomCommands
-	return nil, err
+
+	// var network bytes.Buffer
+	// enc := gob.NewEncoder(&network) // Will write to network.
+	// dec := gob.NewDecoder(&network) // Will read from network.
+
+	customCommands := make([]*Command, 0)
+
+	for _, commandBytes := range customCommandsPB.Command {
+		network2 := bytes.NewBuffer(commandBytes)
+		decoder := gob.NewDecoder(network2) // Will write to network.
+		var q Command
+		err2 := decoder.Decode(&q)
+		if err2 != nil {
+			fmt.Println("decode error:", err2)
+		}
+		fmt.Printf("My Use name: " + q.Use)
+
+		customCommands = append(customCommands, &q)
+	}
+
+	return customCommands, err
 }
 
 // PostTestHook is called from the Core to execute the Plugin PostTestHook. It

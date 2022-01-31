@@ -179,11 +179,20 @@ func (plugin *FixVisibilityPlugin) CustomCommands(
 	isInteractiveMode bool,
 	promptRunner ioutils.PromptRunner,
 ) ([]*aspectplugin.Command, error) {
+	fmt.Println("In the Plugin CustomCommands")
 	test := make([]*aspectplugin.Command, 0)
 
 	test = append(test, &aspectplugin.Command{
 		Use: "jessetest",
 		Run: func(args []string) error {
+			fmt.Println("hey it actually worked")
+			fmt.Println("hey it actually worked")
+			fmt.Println("hey it actually worked")
+			fmt.Println("hey it actually worked")
+			fmt.Println("hey it actually worked")
+			fmt.Println("hey it actually worked")
+			fmt.Println("hey it actually worked")
+			fmt.Println("hey it actually worked")
 			fmt.Println("hey it actually worked")
 			return nil
 		},
