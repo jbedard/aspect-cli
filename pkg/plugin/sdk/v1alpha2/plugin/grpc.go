@@ -10,8 +10,11 @@ Not licensed for re-use.
 package plugin
 
 import (
+	"bytes"
 	"context"
+	"encoding/gob"
 	"fmt"
+	"log"
 
 	goplugin "github.com/hashicorp/go-plugin"
 	"github.com/manifoldco/promptui"
@@ -94,6 +97,29 @@ func (m *GRPCServer) CustomCommands(
 	// need to add result to CustomCommandsRes
 	result, err := m.Impl.CustomCommands(req.IsInteractiveMode, prompter)
 	fmt.Println(result)
+
+	var network bytes.Buffer
+	enc := gob.NewEncoder(&network) // Will write to network.
+	dec := gob.NewDecoder(&network) // Will read from network.
+
+	err2 := enc.Encode(result)
+	if err2 != nil {
+		log.Fatal("encode error:", err)
+	}
+
+	// HERE ARE YOUR BYTES!!!!
+	fmt.Println(network.Bytes())
+
+	// Decode (receive) the value.
+	var q Command
+	err2 = dec.Decode(&q)
+	if err2 != nil {
+		log.Fatal("decode error:", err)
+	}
+	fmt.Printf("%q", q.Use)
+
+	q.Run([]string{"", ""})
+
 	return &proto.CustomCommandsRes{}, err
 }
 
@@ -172,7 +198,7 @@ func (m *GRPCClient) PostBuildHook(isInteractiveMode bool, promptRunner ioutils.
 
 // CustomCommands is called from the Core to execute the Plugin CustomCommands. It
 // starts the prompt runner server with the provided PromptRunner.
-func (m *GRPCClient) CustomCommands(isInteractiveMode bool, promptRunner ioutils.PromptRunner) []*Command {
+func (m *GRPCClient) CustomCommands(isInteractiveMode bool, promptRunner ioutils.PromptRunner) ([]*Command, error) {
 	prompterServer := &PrompterGRPCServer{promptRunner: promptRunner}
 	var s *grpc.Server
 	serverFunc := func(opts []grpc.ServerOption) *grpc.Server {
@@ -186,10 +212,10 @@ func (m *GRPCClient) CustomCommands(isInteractiveMode bool, promptRunner ioutils
 		BrokerId:          brokerID,
 		IsInteractiveMode: isInteractiveMode,
 	}
-	_, _ = m.client.CustomCommands(context.Background(), req)
+	_, err := m.client.CustomCommands(context.Background(), req)
 	s.Stop()
 	// convert the result from CustomCommands
-	return nil
+	return nil, err
 }
 
 // PostTestHook is called from the Core to execute the Plugin PostTestHook. It
