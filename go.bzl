@@ -807,8 +807,8 @@ def deps():
     go_repository(
         name = "com_github_yuin_goldmark",
         importpath = "github.com/yuin/goldmark",
-        sum = "h1:dPmz1Snjq0kmkz159iL7S6WzdahUTHnHB5M56WFVifs=",
-        version = "v1.3.5",
+        sum = "h1:/vn0k+RBvwlxEmP5E7SZMqNxPhfMVFEJiykr15/0XKM=",
+        version = "v1.4.1",
     )
     go_repository(
         name = "com_google_cloud_go",
@@ -1012,14 +1012,14 @@ def deps():
     go_repository(
         name = "org_golang_x_mod",
         importpath = "golang.org/x/mod",
-        sum = "h1:Gz96sIWK3OalVv/I/qNygP42zyoKp3xptRVCWRFEBvo=",
-        version = "v0.4.2",
+        sum = "h1:OJxoQ/rynoF0dcCdI7cLPktw/hR2cueqYfjm43oqK38=",
+        version = "v0.5.1",
     )
     go_repository(
         name = "org_golang_x_net",
         importpath = "golang.org/x/net",
-        sum = "h1:w6wWR0H+nyVpbSAQbzVEIACVyr/h8l/BEkY6Sokc7Eg=",
-        version = "v0.0.0-20210903162142-ad29c8ab022f",
+        sum = "h1:OfiFi4JbukWwe3lzw+xunroH1mnC1e2Gy5cxNJApiSY=",
+        version = "v0.0.0-20211015210444-4f30a5c0130f",
     )
     go_repository(
         name = "org_golang_x_oauth2",
@@ -1036,8 +1036,8 @@ def deps():
     go_repository(
         name = "org_golang_x_sys",
         importpath = "golang.org/x/sys",
-        sum = "h1:3Dq0eVHn0uaQJmPO+/aYPI/fRMqdrVDbu7MQcku54gg=",
-        version = "v0.0.0-20210903071746-97244b99971b",
+        sum = "h1:id054HUawV2/6IGm2IV8KZQjqtwAOo2CYlOToYqa0d0=",
+        version = "v0.0.0-20211019181941-9d821ace8654",
     )
     go_repository(
         name = "org_golang_x_term",
@@ -1061,8 +1061,8 @@ def deps():
         name = "org_golang_x_tools",
         build_directives = ["gazelle:exclude **/testdata/**/*"],
         importpath = "golang.org/x/tools",
-        sum = "h1:kRBLX7v7Af8W7Gdbbc908OJcdgtK8bOz9Uaj8/F1ACA=",
-        version = "v0.1.2",
+        sum = "h1:P1HhGGuLW4aAclzjtmJdf0mJOjVUZUzOTqkAkWL+l6w=",
+        version = "v0.1.8",
     )
     go_repository(
         name = "org_golang_x_xerrors",

@@ -18,6 +18,7 @@ require (
 	github.com/pkg/browser v0.0.0-20210904010418-6d279e18f982
 	github.com/spf13/cobra v1.2.1
 	github.com/spf13/viper v1.8.1
+	golang.org/x/tools v0.1.8
 	google.golang.org/genproto v0.0.0-20210602131652-f16073e35f0c
 	google.golang.org/grpc v1.38.0
 	google.golang.org/protobuf v1.26.0
@@ -47,8 +48,9 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
-	golang.org/x/net v0.0.0-20210903162142-ad29c8ab022f // indirect
-	golang.org/x/sys v0.0.0-20210903071746-97244b99971b // indirect
+	github.com/yuin/goldmark v1.4.1 // indirect
+	golang.org/x/net v0.0.0-20211015210444-4f30a5c0130f // indirect
+	golang.org/x/sys v0.0.0-20211019181941-9d821ace8654 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	gopkg.in/ini.v1 v1.62.0 // indirect
 )
