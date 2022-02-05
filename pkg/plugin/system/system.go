@@ -152,22 +152,22 @@ func (ps *pluginSystem) BESBackendInterceptor() interceptors.Interceptor {
 // BuildHooksInterceptor returns an interceptor that runs the pre and post-build
 // hooks from all plugins.
 func (ps *pluginSystem) BuildHooksInterceptor(streams ioutils.Streams) interceptors.Interceptor {
-	return ps.commandHooksInterceptor("PostBuildHook", streams)
+	return commandHooksInterceptor(ps.plugins, ps.promptRunner, "PostBuildHook", streams)
 }
 
 // TestHooksInterceptor returns an interceptor that runs the pre and post-test
 // hooks from all plugins.
 func (ps *pluginSystem) TestHooksInterceptor(streams ioutils.Streams) interceptors.Interceptor {
-	return ps.commandHooksInterceptor("PostTestHook", streams)
+	return commandHooksInterceptor(ps.plugins, ps.promptRunner, "PostTestHook", streams)
 }
 
 // TestHooksInterceptor returns an interceptor that runs the pre and post-test
 // hooks from all plugins.
 func (ps *pluginSystem) RunHooksInterceptor(streams ioutils.Streams) interceptors.Interceptor {
-	return ps.commandHooksInterceptor("PostRunHook", streams)
+	return commandHooksInterceptor(ps.plugins, ps.promptRunner, "PostRunHook", streams)
 }
 
-func (ps *pluginSystem) commandHooksInterceptor(methodName string, streams ioutils.Streams) interceptors.Interceptor {
+func commandHooksInterceptor(plugins *PluginList, promptRunner ioutils.PromptRunner, methodName string, streams ioutils.Streams) interceptors.Interceptor {
 	return func(ctx context.Context, cmd *cobra.Command, args []string, next interceptors.RunEContextFn) (exitErr error) {
 		isInteractiveMode, err := cmd.Root().PersistentFlags().GetBool(rootFlags.InteractiveFlagName)
 		if err != nil {
@@ -177,10 +177,10 @@ func (ps *pluginSystem) commandHooksInterceptor(methodName string, streams iouti
 		// TODO(f0rmiga): test this hook.
 		defer func() {
 			hasErrors := false
-			for node := ps.plugins.head; node != nil; node = node.next {
+			for node := plugins.head; node != nil; node = node.next {
 				params := []reflect.Value{
 					reflect.ValueOf(isInteractiveMode),
-					reflect.ValueOf(ps.promptRunner),
+					reflect.ValueOf(promptRunner),
 				}
 				if err := reflect.ValueOf(node.plugin).MethodByName(methodName).Call(params)[0].Interface(); err != nil {
 					fmt.Fprintf(streams.Stderr, "Error: failed to run 'aspect %s' command: %v\n", cmd.Use, err)
